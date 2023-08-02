@@ -1,0 +1,7 @@
+&SETUP
+ OutDir     = "Out/",
+ PIRunFile  = "PIRun.in",
+ PIInitFile = "PIInit.in",
+ StatesFile = "states.out",
+ TFile      = "time.out"
+/

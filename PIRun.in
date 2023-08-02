@@ -1,0 +1,11 @@
+&RUNPARAMS
+ S      = 1.0,
+ DT     = 1e-2,
+ L      = 5.0,
+ SHIFT  = 0.0,
+ PHASE  = 0.0,
+ N_X    = 40,
+ N_T    = 100000,
+ SPF    = 100,
+ NONLIN = 1
+/
