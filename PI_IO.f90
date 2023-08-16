@@ -65,27 +65,6 @@ contains
     fvec(sizex-half:sizex,:)=vect(sizef-half:sizef,:)
   end subroutine file2fourier
 
-  subroutine guessFile2Vec(size, fileName, lineN, vec, S, shift, phase)
-    integer, intent(in) :: size
-    character(len = 100), intent(in) :: fileName
-    real(dp), dimension(:) :: vec
-    real(dp), dimension(6*size + 3) :: vecL
-    integer, intent(in) :: lineN
-    integer :: i1, i2
-    real(dp) :: S, shift, phase
-    write(mainfmt, '(A1,I8,A11)') '(', 6*size + 3,'(E30.15E3))'
-    open(12, file = fileName)
-    do i1 = 1, lineN
-       read(12, fmt = mainfmt) vecL(:)
-    end do
-    vec(:) = vecL(4:)
-    S = vecL(1)
-    shift = vecL(2)
-    phase = vecL(3)
-    close(12)
-
-  end subroutine guessFile2Vec
-
   subroutine vec2file(size, fileName, vec, app)
     character, intent(in) :: fileName(:)
     integer, intent(in) :: app, size
@@ -114,7 +93,7 @@ contains
     shp = shape(mat)
     cols = shp(1)
     rows = shp(2)
-    open(12, file = fileName)
+    open(12, file = trim(adjustl(fileName)))
     write(outfmt, '(A1, I9, A11)') '(', cols, '(E30.15E3))'
 
     do j = 1, rows
@@ -126,7 +105,7 @@ contains
   end subroutine writeFile
 
   subroutine writeFile1D(filename, vec, append)
-    character(len=100), intent(in) :: filename
+    character(*), intent(in) :: filename
     character(len=21) :: outfmt
     logical, optional :: append
     real(dp), intent(in), dimension(1:) :: vec
@@ -137,12 +116,14 @@ contains
     cols = shp(1)
     write(*,*) 'cols:', cols
     write(outfmt, '(A1, I9, A11)') '(', cols, '(E20.5E3))'
+    write(*,*) FILENAME
+    write(*,*) adjustl(trim(filename))
     if (present(append)) then
        if (append == .true.) then
-          open(12, file=filename, action='write',position='append')
+          open(12, file=trim(adjustl(filename)), action='write',position='append')
        end if
     else
-       open(12, file=filename)
+       open(12, file=trim(adjustl(filename)))
     end if
     write(12, fmt=outfmt) vec(:)
     close(12)

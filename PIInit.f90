@@ -52,16 +52,7 @@ contains
     close(21)
     mat = 0.0_dp
 
-    if (initMode == -1) then ! Read from file with S, Shift and Phase
-       if (initFile /= "" .AND. lineN /= 0) then
-          call guessFile2vec(size, initFile, lineN, vec, S_, Shift_, Phase_)
-       else
-          write(*,*) 'Error: initMode = -1 requires filename and line number'
-          stop 0
-       end if
-
-       vec=vec*initAmp
-    else if (initMode ==0) then ! Read from file
+    if (initMode ==0) then ! Read from file
        if (initFile /= "" .AND. lineN /= 0) then
           if (UBound > 0 .and. LBound > 0) then
              call file2vec(size, initFile, lineN, vec, LBound = LBound, UBound = UBound)

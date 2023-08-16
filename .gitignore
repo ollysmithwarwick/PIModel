@@ -14,3 +14,11 @@ pi_mod.mod
 pimodule.mod
 pirunmodule.mod
 main
+Bisect.f90~
+bisect.in~
+BisectSetup.in~
+#BisectSetup.in#
+#PI_main.f90#
+a.out
+bisect.out
+BisectOut

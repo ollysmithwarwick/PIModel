@@ -1,0 +1,9 @@
+&SETUP
+ OutDir     = "BisectOut/",
+ PIRunFile  = "PIRun.in",
+ PIInitFile = "PIInit.in",
+ StatesFile = "states.out",
+ TFile      = "time.out",
+ AmpFile    = "amps.out",
+ BisFile    = "bisect.in"
+/

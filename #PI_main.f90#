@@ -12,14 +12,14 @@ program PIExecute
 
   implicit none
   type(PIRun) :: PIRunIn
-  character (len=500) :: setupFile = 'PISetup.in', OutDir, PIRunFile, PIInitFile, StatesFile, TFile
+  character (len=500) :: setupFile = 'PISetup.in', OutDir, PIRunFile, PIInitFile, StatesFile, TFile, PIRunOutFile
   real(dp), dimension(:,:), allocatable :: states
   real(dp), dimension(:),   allocatable :: tVals
 
   ! Iterators
   integer :: jt, jf
 
-  namelist /setup/ OutDir, PIRunFile, PIInitFile, StatesFile, TFile
+  namelist /setup/ OutDir, PIRunFile, PIInitFile, StatesFile, TFile, PIRunOutFile
   
   write(*,*) 'PI: Started'
 
@@ -75,8 +75,9 @@ program PIExecute
   write(*,*) 'PI: Copying input files'
   call system('cp '//trim(adjustl(PIRunFile))//' '//trim(adjustl(OutDir)))
   call system('cp '//trim(adjustl(PIInitFile))//' '//trim(adjustl(OutDir)))
+  call run2file(PIRunFile, PIRunIn)
   write(*,*) 'PI: Done'
-!  deallocate(states)
-!  deallocate(tvals)
+  deallocate(states)
+  deallocate(tvals)
   
 end program PIExecute
