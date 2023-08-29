@@ -1,4 +1,6 @@
 module PI_io
+! Tools for i/o relating to PIModel !
+
   use parameters
   use PIRunModule
   implicit none
@@ -15,12 +17,17 @@ contains
   end subroutine setupIo
 
   subroutine file2vec(sizex, fileName, lineN, vec, LBound, UBound)
+    ! Read a vector from lineN of fileName. !
+
     integer, intent(in) :: sizex
     character(len = 100), intent(in) :: fileName
     real(dp), dimension(:) :: vec
-    real(dp), dimension(:), allocatable :: vect
+
     integer, intent(in) :: lineN
-    integer, intent(in), optional :: UBound, LBound
+    integer, intent(in), optional :: UBound, LBound ! Can be used to take a range of values that is not the whole line in filename
+
+
+    real(dp), dimension(:), allocatable :: vect
     integer :: U, L
     integer :: i1, i2
     allocate(vect(size(vec)))
@@ -47,6 +54,7 @@ contains
   end subroutine file2vec
 
   subroutine file2fourier(sizex,sizef,filename,fvec)
+    ! Reads in fourier coefficients from a file !
     integer, intent(in) :: sizex, sizef
     character(len = 100), intent(in) :: fileName
     complex(dp), dimension(:,:), intent(out) :: fvec
@@ -66,6 +74,8 @@ contains
   end subroutine file2fourier
 
   subroutine vec2file(size, fileName, vec, app)
+    ! Print contents of vec to filename !
+    ! If app is true the line will be appended !
     character, intent(in) :: fileName(:)
     integer, intent(in) :: app, size
     integer :: i1, i2
@@ -83,6 +93,7 @@ contains
   end subroutine vec2file
 
   subroutine writeFile(fileName, mat)
+    ! Write contents of a matrix to filename !
     character(*), intent(in) :: fileName
     character(len = 21) :: outfmt
     real(dp), intent(in), dimension(1:, 1:) :: mat
@@ -115,7 +126,7 @@ contains
     shp=shape(vec)
     cols = shp(1)
     write(*,*) 'cols:', cols
-    write(outfmt, '(A1, I9, A11)') '(', cols, '(E20.5E3))'
+    write(outfmt, '(A1, I9, A11)') '(', cols, '(E30.15E3))'
     write(*,*) FILENAME
     write(*,*) adjustl(trim(filename))
     if (present(append)) then
@@ -131,7 +142,7 @@ contains
   end subroutine writeFile1D
 
   subroutine writeFileComplex(fileName, mat)
-    character(len = 100), intent(in) :: fileName
+    character(*), intent(in) :: fileName
     character(len = 21) :: outfmt
     complex(dp), intent(in), dimension(1:, 1:) :: mat
     integer, dimension(2) :: shp
@@ -153,16 +164,17 @@ contains
   end subroutine writeFileComplex
 
   subroutine vec2mat(size, vec, mat)
+    ! Convert from 1D vec to 2D mat format
     integer, intent(in) :: size
     real(dp), dimension(6*size)    :: vec
     complex(dp), dimension(size, 4) :: mat
     integer :: i1, i2
 
     do i1 = 1, size
-       mat(i1, 1) = vec(i1)
-       mat(i1, 2) = vec(i1+size)
-       mat(i1, 3) = vec(2*i1 + 2*size - 1) + im*vec(2*i1 + 2*size)
-       mat(i1, 4) = vec(2*i1 + 4*size - 1) + im*vec(2*i1 + 4*size)
+       mat(i1, 1) = vec(i1) ! NBAR
+       mat(i1, 2) = vec(i1+size) !E
+       mat(i1, 3) = vec(2*i1 + 2*size - 1) + im*vec(2*i1 + 2*size) !PHITILDE
+       mat(i1, 4) = vec(2*i1 + 4*size - 1) + im*vec(2*i1 + 4*size) ! NTILDE
     end do
   end subroutine vec2mat
 

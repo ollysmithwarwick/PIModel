@@ -51,11 +51,11 @@ module PIRunModule
   subroutine run2file(runIn, fileName)
   ! Prints PIRun to a file via namelist !
     type(PIRun), intent(in) :: runIn
-    character(len = 100), intent(in) :: fileName
+    character(*), intent(in) :: fileName
     real(dp) :: S, dt, L, shift, phase
     integer :: N_x, N_t, spf, nonlin
 
-    namelist /PIRun/ S, dt, L, shift, phase, N_x, N_t, spf, nonlin
+    namelist /runParams/ S, dt, L, shift, phase, N_x, N_t, spf, nonlin
 
     S          = runIn%S
     dt         = runIn%dt
@@ -67,8 +67,8 @@ module PIRunModule
     spf        = runIn%spf
     nonlin     = runIn%nonlin
 
-    open(12, file = fileName)
-    write(12, nml=PIRun)
+    open(12, file = trim(adjustl(fileName)))
+    write(12, nml=runParams)
     close(12)
   end subroutine run2file   
   

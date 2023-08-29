@@ -1,4 +1,4 @@
-program PIExecute
+program PIExample
 ! *********************************************** !
 ! Reads in an initialisation file, and parameters !
 ! and computes the time evolution of the PI model !
@@ -6,7 +6,7 @@ program PIExecute
 ! output file                                     !
 ! *********************** Oliver Smith 31/07/2023 !
 
-  use PIInit     
+  use PIInit
   use PIRunModule
   use PIModule
 
@@ -79,4 +79,4 @@ program PIExecute
 !  deallocate(states)
 !  deallocate(tvals)
   
-end program PIExecute
+end program PIExample

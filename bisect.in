@@ -1,8 +1,9 @@
 &BISECTPARAMS
- lam  = 2.0e-6
- turb = 2e-2
- tmin = 0.3
- maxits = 3
+ lam  = 1e-5
+ turb = 1e-2
+ n_int = 1000
+ tmin = 5
+ maxits = 60
  initamp = 1d0
- step = 1e-1
+ step = 1e0
 /

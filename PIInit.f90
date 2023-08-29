@@ -1,4 +1,8 @@
 module PIInit
+! **************************************************************** !
+! Module containing tools to get initial conditions from a file or !
+! initialise with a type of initial condition                      !
+! **************************************************************** !
   use parameters
   use pi_io
 
@@ -142,10 +146,9 @@ contains
        mat(LBound:UBound, 3:4)=initAmp*fvec(:,:)
        call mat2vec(size,mat,vec)
     end if
-!    if (translateL /= 0) then
+
     call translate(vec,vecTmp,translateL, phaseP, globalN, globalE)
     vec = vecTmp
-!    end if
 
   end subroutine getVec
 

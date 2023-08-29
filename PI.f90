@@ -28,14 +28,14 @@ module PIModule
   ! DERIVED QUANTITIES !
   integer :: N32, spf                                        ! Number of grid points in the expanded 3/2 space
   real(dp), dimension(:), allocatable :: k                   ! Vector containing k (wavenumber) values for each point in Fourier space
-  real(dp) :: f, f2, f32, L_inv, t, t_total, dx              ! Helpful divisor terms
+  real(dp) :: f, f2, f32, L_inv, t, t_total, dx              ! Helpful divisor terms and time trackers
 
   ! CONSTANTS !
   integer, parameter :: NBAR = 1, E = 2, PHITILDE = 3, NTILDE = 4, DXNBAR = 5, DXPHITILDE = 6, B_PLUS = 5, B_MINUS = 6 ! These are labels to make identifying rval entries easier
 
 contains
 
-  subroutine PI_Main(PIRun0, states)
+  subroutine PI_main(PIRunIn, states)
     ! The code works using the general sequence of steps: !
     !       1. Read all input information from setup.in, init.dat                       !
     !       2. Convert the initial conditions to Fourier space                          !
@@ -47,55 +47,71 @@ contains
     !           grid point.                                                             !
     !       8. Go back to 3 until the full time is done, then print results.            !
 
-    type(PIRun) :: PIRun0
-    real(dp), dimension(1:,1:), intent(inout) :: states
-    real(dp), dimension(:), allocatable :: init, vec
-    real(dp) :: shift, phase
-    integer :: nf, j
+    ! Arguments
+    type(PIRun) :: PIRunIn                              ! A PIRun (see PIRun.f90) with  !
+                                                        !     all setup info.           !
+    real(dp), dimension(1:,1:), intent(inout) :: states ! A dimension 2 array to store  !
+                                                        !     full state at each frame  !
+                                                        !     Should be preallocated    ! 
 
-    write(*,*) 'PI_main: Called'
+    ! Other
+    real(dp), dimension(:), allocatable ::  vec         ! Will contain current state    ! 
+    real(dp), dimension(:), allocatable :: init         ! Will contain initial state    !
+    real(dp) :: shift, phase                            ! Will translate and phase-rota-!
+                                                        !    te the final solution resp-!
+                                                        !    ectively                   !
+    ! Iterators
+    integer :: nf, j 
     
-    S = PIRun0%S
-    dt = PIRun0%dt
-    L = PIRun0%L
-    N_x = PIRun0%N_x
-    N_t = PIRun0%N_t
-    spf = PIRun0%spf
-    nonlin = PIRun0%nonlin
-    shift = PIRun0%shift
-    phase = PIRun0%phase
+    ! Extract important info from RPRunIn
+    S = PIRunIn%S
+    dt = PIRunIn%dt
+    L = PIRunIn%L
+    N_x = PIRunIn%N_x
+    N_t = PIRunIn%N_t
+    spf = PIRunIn%spf
+    nonlin = PIRunIn%nonlin
+    shift = PIRunIn%shift
+    phase = PIRunIn%phase
+
+    ! Initialise states to 0
     states = 0.0_dp
 
+    ! Call PI_setup
     call PI_setup()
-!    write(*,*) 'PI_main: PI_setup complete' 
 
-!    allocate(states(6*N_x, N_frames))
+    ! Allocate memory to init  and vec
     allocate(init(6*N_x))
     allocate(vec(6*N_x))
-!    write(*,*) 'PI_main: Allocation complete'
+    ! Print here as common error location
+    write(*,*) 'PI_main: Allocation complete'
+
+    ! Take init from PIRunIn and convert to 2D-array form
     vec = 0.0_dp
-    init = PIRun0%init
+    init = PIRunIn%init
     call vec2mat(N_x, init, rval)
-!    write(*,*) 'vec2mat complete'
-    states(:, 1) = init(:)
 
-    t = 0
-    t_total = 0
-    nf = 0
-    call fft(1)
-!    write(*,*) 'shp = ', shape(states)
+    
+    states(:, 1) = init(:)  ! Copy initial state into states
 
-    do j = 1, N_t
-       call time_step(dt)
-       if (mod(j, spf) == 0) then
-          nf = nf + 1
-          call fft(-1)
-          call mat2vec(N_x, rval, vec)
-          states(:,nf + 1) = vec(:)
-       end if
-    end do
+    t = 0                   ! Set times to zero. t tracks time since remap
+    t_total = 0             ! tracks total time
+    nf = 0                  ! tracks number of frames completed (0 is initial frame)
+    call fft(1)             ! fft to get fval
 
-!    write(*,*) 'PI_main: Shifting final state'
+    ! Main loop. ***********************************************************!
+    do j = 1, N_t                                                           !
+       call time_step(dt)                                                   !
+       if (mod(j, spf) == 0) then   ! Only save state every spf time steps  !
+          nf = nf + 1                                                       !
+          call fft(-1)                                                      !
+          call mat2vec(N_x, rval, vec)                                      !
+          states(:,nf + 1) = vec(:)                                         !
+       end if                                                               !
+    end do                                                                  !
+    ! End of main loop *****************************************************!
+
+    ! Translate final state by shift 
     do j = 1, N_x
        fval(j,     NBAR) = fval(j,     NBAR) * exp(im*(k(j)*shift))
        fval(j,        E) = fval(j,        E) * exp(im*(k(j)*shift))
@@ -103,24 +119,17 @@ contains
        fval(j,   NTILDE) = fval(j,   NTILDE) * exp(im*(k(j)*shift))
     end do
 
+    ! Rotate final state phase by phase
     call fft(-1)
     rval(:,  NTILDE) = rval(:,  NTILDE)*exp(im*phase)
     rval(:,PHITILDE) = rval(:,PHITILDE)*exp(im*phase)
     call mat2vec(N_x, rval, vec)
+
+    ! Store adjuisted state at end of states
     states(:, nf + 2) = vec(:)
 
-!    write(*,*) 'PI_main: Done'
-
-!    if (PIRun0%statesFile /= '') then
-!       call writeFile(PIRun0%statesFile, states)
-!    end if
-
-!    if (PIRun0%plotInfoFile /='') then
-!       call run2file(PIRun0, PIRun0%plotInfoFile)
-!    end if
-
     call end_pi
-!    write(*,*) 'PI_main: Done'
+    write(*,*) 'PI_main: Done'
 
   end subroutine PI_Main
 
